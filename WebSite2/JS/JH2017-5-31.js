@@ -1,0 +1,127 @@
+﻿//浏览器是否支持ActiveX控件
+function CheckActiveX(url) {
+    if (!window.ActiveXObject) {
+        alert("请使用IE浏览器打印标签");
+        window.location.replace(url);
+    }
+}
+
+
+function writeFile(content) {
+    //"C:\Program Files\Seagull\BarTender Suite\BarTender\bartend.exe" /F="D:\BT32\Pallet.btw" /D="D:\BT32\Pallet.txt" /P /x
+    var fso, f, s, filename, f2
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+    filename = 'C://BT32//FilmLabel.txt'
+    if (fso.FileExists(filename) == true) {
+        f2 = fso.GetFile(filename);
+        f2.Delete();
+    }
+    //filecontent = document.getElementById('<%=txtLabelInfo.ClientID %>').value
+
+    f = fso.OpenTextFile(filename, 8, true);
+    f.WriteLine(content);
+    f.Close();
+}
+
+//打印标签
+//增加产品类型 modify by lei.xue on 2017-5-31
+//content：批次号
+//refreshURL 刷新网址
+//producttype 产品类型'',producttype,length,width
+
+function PrintLabel(content, refreshURL,producttype) {
+    //var labelContent = content;
+    //var content = '';
+    var boxqty = 0;
+    var qty = 0;
+    //浏览器是否支持ActiveX控件
+    if (!window.ActiveXObject) {
+        alert("请使用IE浏览器打印标签");
+        window.location.replace(refreshURL);
+    }
+    //alert(content);
+    writeFile(content+','+producttype);
+    //bartender9.01是否安装
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+    filename = 'C://Program Files//Seagull//BarTender Suite//bartend.exe';
+    filename64 = 'C://Program Files (x86)//Seagull//BarTender Suite//bartend.exe';
+    //C:\Program Files (x86)\Seagull\BarTender Suite\bartend.exe
+    //bartender10.1路径
+    if ((fso.FileExists(filename) != true) && (fso.FileExists(filename64) != true)) {
+        alert("请先安装Bartender10.1软件，目前无法打印");
+        return false;
+    }
+    var WshShell = new ActiveXObject("WScript.Shell");
+    //modify by lei.xue on 2017-3-1 制造流程条码改为单独模板
+    var exeContent = "bartend.exe /F=\"C:\\BT32\\FilmLabel.btw\" /D=\"C:\\BT32\\FilmLabel.txt\" /P /x"
+    //exeContent = "ping 192.168.1.55";
+    WshShell.run(exeContent);
+    alert("操作成功，生成标签：" + content);
+    //刷新页面
+    window.location.replace(refreshURL);
+}
+
+function myBrowser() {
+    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+    var isOpera = userAgent.indexOf("Opera") > -1; //判断是否Opera浏览器
+    var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera; //判断是否IE浏览器
+    var isFF = userAgent.indexOf("Firefox") > -1; //判断是否Firefox浏览器
+    var isSafari = userAgent.indexOf("Safari") > -1; //判断是否Safari浏览器
+    if (isIE) {
+        var IE5 = IE55 = IE6 = IE7 = IE8 = false;
+        var reIE = new RegExp("MSIE (\\d+\\.\\d+);");
+        reIE.test(userAgent);
+        var fIEVersion = parseFloat(RegExp["$1"]);
+        IE55 = fIEVersion == 5.5;
+        IE6 = fIEVersion == 6.0;
+        IE7 = fIEVersion == 7.0;
+        IE8 = fIEVersion == 8.0;
+        if (IE55) {
+            return "IE55";
+        }
+        if (IE6) {
+            return "IE6";
+        }
+        if (IE7) {
+            return "IE7";
+        }
+        if (IE8) {
+            return "IE8";
+        }
+    }//isIE end
+    if (isFF) {
+        return "FF";
+    }
+    if (isOpera) {
+        return "Opera";
+    }
+}//myBrowser() end
+
+function CheckIEBrowser()
+{
+    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+    var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera; //判断是否IE浏览器
+    if (isIE) {
+        return "true";
+    }
+    else {
+        return "false";
+    }
+
+
+}
+
+function PreventSubmit01(index)
+{
+    if (index.index == 0) {
+        index.index = 1;
+        
+    }
+    else {
+        return false;
+    }
+}
+function test()
+{
+    alert("测试方法");
+}

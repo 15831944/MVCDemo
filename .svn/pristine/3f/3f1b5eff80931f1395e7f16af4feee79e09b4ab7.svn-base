@@ -1,0 +1,373 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.Common;
+
+public partial class Report_Default : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+
+    }
+    private DataTable DataByWorksite(DataTable dt, string worksitename)
+    {
+        DataTable dtjson = dt.Clone();
+        DataRow[] rows = dt.Select("worksiteid='" + worksitename + "'");
+
+        foreach (DataRow row in rows)
+        {
+
+            dtjson.Rows.Add(row.ItemArray);
+        }
+        return dtjson;
+
+    }
+    protected void Button1_Click(object sender, EventArgs e)
+    {
+        //===============查询站点信息=========================
+        DataTable QCdt;
+        DataTable dt = FilmQuery.QueryData(txtLot.Text);
+        //过站实体类
+        WipLotDatalist AGDatalist = new WipLotDatalist();
+        WipLotDatalist UVBackDatalist = new WipLotDatalist();
+        WipLotDatalist UVCompleteDatalist = new WipLotDatalist();
+        WipLotDatalist PasteFilmDatalist = new WipLotDatalist();
+        WipLotDatalist SubsectionDatalist = new WipLotDatalist();
+        WipLotDatalist PackageDatalist = new WipLotDatalist();
+        //检验实体类
+        AGCoatingQCDatalist QCAGDatalist = new AGCoatingQCDatalist();
+        AGCoatingQCDatalist QCUVBackDatalist = new AGCoatingQCDatalist();
+        AGCoatingQCDatalist QCUVCompleteDatalist = new AGCoatingQCDatalist();
+        AGCoatingQCDatalist QCPasteFilmDatalist = new AGCoatingQCDatalist();
+        AGCoatingQCDatalist QCSubsectionDatalist = new AGCoatingQCDatalist();
+
+        //检验结果
+        string QCAGJson = "";
+        string QCUVBackJson = "";
+        string QCUVCompleteJson = "";
+        string QCPasteFilmJson = "";
+        string QCSubsectionJson = "";
+        if (dt.Rows.Count > 0)
+        {
+            DataRow[] dr;
+            #region//1、AG涂布=====================================================================
+            dr = dt.Select("worksiteid = 'AG涂布'");
+            if (dr.Length > 0) 
+            { 
+                AGDatalist.createtime = dr[0]["createtime"].ToString();
+                AGDatalist.eqpid = dr[0]["eqpid"].ToString();
+                AGDatalist.length = dr[0]["filmlength"].ToString();
+                AGDatalist.width = dr[0]["filmwidth"].ToString();
+                AGDatalist.PET = dr[0]["PET"].ToString();
+                AGDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            //AGCoatingGlueType
+            dr = dt.Select("worksiteid = 'AG涂布' and paratypeEn='AGCoatingGlueType'");
+            if (dr.Length > 0) { AGDatalist.Glue = dr[0]["paraid"].ToString(); }
+            #endregion
+            #region//2、UV背涂======================================================================
+            dr = dt.Select("worksiteid = 'UV背涂'");
+            if (dr.Length > 0)
+            {
+                UVBackDatalist.createtime = dr[0]["createtime"].ToString();
+                UVBackDatalist.eqpid = dr[0]["eqpid"].ToString();
+                UVBackDatalist.length = dr[0]["filmlength"].ToString();
+                UVBackDatalist.width = dr[0]["filmwidth"].ToString();
+                UVBackDatalist.PET = dr[0]["PET"].ToString();
+                UVBackDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            //AGCoatingGlueType
+            dr = dt.Select("worksiteid = 'UV背涂' and paratypeEn='UVBackGlueType'");
+            if (dr.Length > 0) { UVBackDatalist.Glue = dr[0]["paraid"].ToString(); }
+            #endregion
+            #region//3、UV成型======================================================================
+            dr = dt.Select("worksiteid = 'UV成型'");
+            if (dr.Length > 0)
+            {
+                UVBackDatalist.createtime = dr[0]["createtime"].ToString();
+                UVBackDatalist.eqpid = dr[0]["eqpid"].ToString();
+                UVBackDatalist.length = dr[0]["filmlength"].ToString();
+                UVBackDatalist.width = dr[0]["filmwidth"].ToString();
+                UVBackDatalist.PET = dr[0]["PET"].ToString();
+                UVBackDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            //AGCoatingGlueType
+            dr = dt.Select("worksiteid = 'UV成型' and paratypeEn='UVCompleteGlueType'");
+            if (dr.Length > 0) { UVBackDatalist.Glue = dr[0]["paraid"].ToString(); }
+            #endregion
+            #region//4、贴膜=========================================================================
+            dr = dt.Select("worksiteid = '贴膜'");
+            if (dr.Length > 0)
+            {
+                PasteFilmDatalist.createtime = dr[0]["createtime"].ToString();
+                PasteFilmDatalist.eqpid = dr[0]["eqpid"].ToString();
+                PasteFilmDatalist.length = dr[0]["filmlength"].ToString();
+                PasteFilmDatalist.width = dr[0]["filmwidth"].ToString();
+                PasteFilmDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            #endregion
+
+            #region//5、分条=========================================================================
+            dr = dt.Select("worksiteid = '分条'");
+            if (dr.Length > 0)
+            {
+                SubsectionDatalist.createtime = dr[0]["createtime"].ToString();
+                SubsectionDatalist.eqpid = dr[0]["eqpid"].ToString();
+                SubsectionDatalist.length = dr[0]["filmlength"].ToString();
+                SubsectionDatalist.width = dr[0]["filmwidth"].ToString();
+                SubsectionDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            #endregion
+
+            #region//6、包装========================================================================
+            dr = dt.Select("worksiteid = '包装'");
+            if (dr.Length > 0)
+            {
+                PackageDatalist.createtime = dr[0]["createtime"].ToString();
+                PackageDatalist.userid = dr[0]["createuser"].ToString();
+            }
+            #endregion
+
+            //===================检验内容===============================
+            QCdt =Runcard.QueryQCData(txtLot.Text);
+            if (QCdt.Rows.Count > 0)
+            {
+                #region//1、AG涂布检验=================================================================
+                dr = QCdt.Select("worksiteid = 'AG涂布检验'");
+                if (dr.Length > 0)
+                {
+                    QCAGDatalist.createtime = dr[0]["createtime"].ToString();
+                    QCAGDatalist.userid = dr[0]["createuser"].ToString();
+                }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='厚度' and parasubtype = '左' ");
+                if (dr.Length > 0) { QCAGDatalist.thinknessmiddle = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='厚度' and parasubtype = '中' ");
+                if (dr.Length > 0) { QCAGDatalist.thinknessmiddle = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='厚度' and parasubtype = '右' ");
+                if (dr.Length > 0) { QCAGDatalist.thinknessright = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='MD雾度' ");
+                if (dr.Length > 0) { QCAGDatalist.MDhaze = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='MD穿透率' ");
+                if (dr.Length > 0) { QCAGDatalist.MDpenetration = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='粒子' and parasubtype = '分布' ");
+                if (dr.Length > 0) { QCAGDatalist.ParticleDistribution = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='百格' ");
+                if (dr.Length > 0) { QCAGDatalist.ParticleDistribution = dr[0]["paraid"].ToString(); }
+                dr = dt.Select("worksiteid = 'AG涂布检验' and paratype='铅笔硬度' ");
+                if (dr.Length > 0) { QCAGDatalist.ParticleDistribution = dr[0]["paraid"].ToString(); }
+                #endregion
+                ////2、UV背涂
+                //QCUVBackJson = DataByWorksite(QCdt, "UV背涂检验");
+                ////3、UV成型
+                //QCUVCompleteJson = DataByWorksite(QCdt, "UV成型检验");
+                ////4、贴膜
+                //QCPasteFilmJson = DataByWorksite(QCdt, "贴膜检验");
+                ////5、分条
+                //QCSubsectionJson = DataByWorksite(QCdt, "分条检验");
+            }
+            //===============查询站点信息=========================
+            string content = "       <table class=\"tblothistory\" border=\"2px\" bordercolor=\"#000000\" cellspacing=\"0\">" +
+            "           <tr class=\"trlothistory01\">" +
+            "               <td class=\"tdtitle\" style=\"font-weight: bolder; font-size: 16px;\">型号</td>" +
+            "               <td></td>" +
+            "               <td class=\"tdtitle\">厚度</td>" +
+            "               <td></td>" +
+            "               <td class=\"tdtitle\">宽幅</td>" +
+            "               <td></td>" +
+            "               <td class=\"tdtitle\">长度</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td rowspan=\"9\" class=\"tdtitle\">AG涂布/UV背涂</td>" +
+            "           </tr>" +
+            "           <tr class=\"trlothistory\">" +
+            "               <td>机台</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"8\" class=\"tdtitle\">AG涂布/UV背涂检验</td>" +
+            "               <td>厚度</td>" +
+            "               <td></td>" +
+            "               <td>百格</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>模具</td>" +
+            "               <td></td>" +
+            "               <td>雾度</td>" +
+            "               <td></td>" +
+            "               <td>硬度</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>PET</td>" +
+            "               <td></td>" +
+            "               <td>透光率</td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>胶水</td>" +
+            "               <td></td>" +
+            "               <td>粒子密度</td>" +
+            "               <td></td>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>宽幅(原始/有效)</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"2\">点/线</td>" +
+
+            "               <td colspan=\"3\" rowspan=\"2\"></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>长度(原始/有效)</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"2\">纹路</td>" +
+            "               <td colspan=\"3\" rowspan=\"2\"></td>" +
+
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+
+            "           </tr>" +
+            "           <tr class=\"trlothistory\">" +
+            "               <td rowspan=\"8\" class=\"tdtitle\">UV成型</td>" +
+            "               <td>机台</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"8\"class=\"tdtitle\">成型检验</td>" +
+            "               <td>厚度</td>" +
+            "               <td></td>" +
+            "               <td>百格</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>模具</td>" +
+            "               <td></td>" +
+            "               <td>辉度</td>" +
+            "               <td></td>" +
+            "               <td>dH</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>PET</td>" +
+            "               <td></td>" +
+            "               <td>耐磨</td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>胶水</td>" +
+            "               <td></td>" +
+            "               <td>翘曲</td>" +
+            "               <td></td>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>宽幅(原始/有效)</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"2\">点/线</td>" +
+            "               <td colspan=\"3\" rowspan=\"2\"></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>长度(原始/有效)</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"2\">纹路</td>" +
+            "               <td colspan=\"3\" rowspan=\"2\"></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr class=\"trlothistory\">" +
+            "               <td rowspan=\"4\"class=\"tdtitle\">贴膜</td>" +
+            "               <td>机台</td>" +
+            "               <td></td>" +
+            "               <td>宽幅</td>" +
+            "               <td></td>" +
+            "               <td rowspan=\"4\"class=\"tdtitle\">贴膜检验</td>" +
+            "               <td>点线</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>正保</td>" +
+            "               <td></td>" +
+            "               <td>长度</td>" +
+            "               <td></td>" +
+            "               <td>纹路</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>背保</td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr class=\"trlothistory\">" +
+            "               <td rowspan=\"2\"class=\"tdtitle\">分条</td>" +
+            "               <td>机台</td>" +
+            "               <td></td>" +
+            "               <td>宽幅</td>" +
+            "               <td></td>" +
+            "               <td>长度</td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "           </tr>" +
+
+            "           <tr>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "           <tr class=\"trlothistory\">" +
+            "               <td class=\"tdtitle\">包装</td>" +
+            "               <td>人员</td>" +
+            "               <td></td>" +
+            "               <td>时间</td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "               <td></td>" +
+            "           </tr>" +
+            "       </table>";
+
+            //ClientScript.RegisterStartupScript(ClientScript.GetType(), "myscript", "<script>return loaddata01('1');</script>");
+            Page.ClientScript.RegisterStartupScript(ClientScript.GetType(), "myscript", "<script >loaddata01('" + content + "');</script>");
+        }
+    }
+}

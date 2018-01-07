@@ -1,0 +1,158 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.Common;
+using Pub;
+
+public partial class Warehouse_Shipment : System.Web.UI.Page
+{
+    private DataTable dt = new DataTable();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            //CommonClass.isAllow(User.Identity.Name, this, "入库");
+            txtLot.Attributes.Add("onkeypress", "EnterTextBox()");
+            CreateTable();
+
+        }
+    }
+
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        string result = "";
+        string ShipmentID = "";
+        //获取出货单号
+        ShipmentID = Shipment.QueryShipmentIDByDay();
+        if (ShipmentID == "fail")
+        {
+            JScript.Alert("查询出货单号流水码出错！", this);
+            return;
+        }
+        else
+        {
+            ShipmentID = System.DateTime.Now.ToString("yyyyMMdd")+ (Convert.ToInt32( ShipmentID)+1).ToString();
+        }
+        DataTable dt = (DataTable)ViewState["dt"];
+        if (dt.Rows.Count > 0)
+        {
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                result = Shipment.ShipmentInfo(dt.Rows[i]["lotid"].ToString(), ShipmentID);
+                if (result == "fail")
+                {
+                    JScript.Alert("出货出错！", this);
+                    return;
+                }
+            }
+            JScript.AlertAndRedirect("出货成功！","../Warehouse/Shipment.aspx", this);
+        }
+        else
+        {
+            JScript.Alert("请先刷入条码！", this);
+        }
+
+    }
+
+
+    private void CreateTable()
+    {
+        //创建列
+        dt.Columns.Clear();
+        dt.Rows.Clear();
+        DataColumn dtCol = new DataColumn("lotid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workorderid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workordertype", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("warehousecode", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("warehousetype", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workshopid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("pinmin", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("thinkness", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("length", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("width", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("type", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("pettype", typeof(string));
+        dt.Columns.Add(dtCol);
+        ViewState["dt"] = dt;
+    }
+
+
+    private void databind()
+    {
+        this.grd.DataSource = (DataTable)ViewState["dt"];
+        this.grd.DataBind();
+    }
+
+    protected void btnEnter_Click(object sender, EventArgs e)
+    {
+        //JScript.Alert("未找到条码信息", this);
+        using (DbDataReader reader = Warehouse.QueryLotInfo(txtLot.Text))
+        {
+            if (reader.Read())
+            {
+                dt = (DataTable)ViewState["dt"];
+                //是否入库
+                if (reader["warehouse"].ToString() != "Y")
+                {
+                    JScript.Alert("批次尚未入库", this);
+                    return;
+                }
+                //是否出货
+                if (reader["shipment"].ToString() == "Y")
+                {
+                    JScript.Alert("批次已经出货", this);
+                    return;
+                }
+                DataRow dtRow = dt.NewRow();
+                dtRow["lotid"] = reader["lotid"].ToString();
+                dtRow["workorderid"] = reader["workorderid"].ToString();
+                dtRow["workordertype"] = reader["workordertype"].ToString();
+                dtRow["warehousecode"] = reader["warehousecode"].ToString();
+                dtRow["warehousetype"] = reader["warehousetype"].ToString();
+                dtRow["workshopid"] = reader["workshopid"].ToString();
+                dtRow["pinmin"] = reader["pinmin"].ToString();
+                dtRow["thinkness"] = reader["thinkness"].ToString();
+                dtRow["length"] = reader["length"].ToString();
+                dtRow["width"] = reader["width"].ToString();
+                dtRow["type"] = reader["type"].ToString();
+                dtRow["pettype"] = reader["pettype"].ToString();
+                dt.Rows.Add(dtRow);
+                ViewState["dt"] = dt;
+                databind();
+                txtQty.Text = (Convert.ToInt32(txtQty.Text) + 1).ToString();
+            }
+            else
+            {
+                JScript.Alert("未找到条码信息", this);
+                return;
+            }
+        }
+    }
+    protected void btnEdit_Click(object sender, EventArgs e)
+    {
+        for (int i = grd.Rows.Count - 1; i >= 0; i--)
+        {
+            CheckBox cbx = (CheckBox)grd.Rows[i].FindControl("cbx");
+            if (cbx.Checked)
+            {
+                ((DataTable)ViewState["dt"]).Rows.RemoveAt(i);
+            }
+        }
+        databind();
+    }
+}

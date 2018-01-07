@@ -1,0 +1,99 @@
+﻿body {
+}
+#right_menu{
+	height:59px;
+	background:url(../image/right_daohang_bg.png) repeat-x left top;
+    margin:0;
+	padding:0;
+	}
+
+#daohang{
+	width:298px;
+	padding-left:20px;
+	height:59px;
+	float:left;
+	line-height:59px;
+	font-size:15px;
+	font-family:"宋体";
+	font-weight:bold;
+	}
+#daohang img{
+	margin-right:5px;
+	}
+
+#button{
+	float:right;
+	width:auto;
+	margin:0;
+	padding:0;
+	height:56px;
+	margin-top:3px;
+	}
+
+#button a{
+	text-decoration:none;
+	color:#000;
+	border:0;
+	}
+	.button a{
+	text-decoration:none;
+	color:#000;
+	border:0;
+	}
+#button a img{
+	border:0;
+	}
+	.button a img{
+	border:0;
+	}
+#button ul{
+	margin:0;
+	padding:0;
+	list-style:none;
+	height: 70px;
+}
+#button ul li{
+	float:left;
+	margin-right:15px;
+	text-align:center;
+	width:48px;/**没设width 在dw中会跑到下一行，但不会影响效果*/
+	}
+
+.daohang_btn_saveclose{
+		border-style: none;
+	border-color: inherit;
+	border-width: 0;
+	height:56px;
+	background:url(../image/save_close.png) no-repeat center top;
+		padding-top:30px;
+		text-align:center;
+	}
+	
+
+	
+
+	
+
+	
+	.daohang_btn_reset{
+	height:56px;
+	background:url(../image/reset.png) no-repeat center top;
+	border:0;
+	padding-top:30px;
+	text-align:center;
+	}
+	
+	.daohang_btn_return{
+	height:56px;
+	background:url(../image/return.png) no-repeat center top;
+	border:0;
+	padding-top:30px;
+	text-align:center;
+	}
+	.daohang_btn_edit{
+	height:56px;
+	background:url(../image/edit.png) no-repeat center top;
+	border:0;
+	padding-top:30px;
+	text-align:center;
+	}

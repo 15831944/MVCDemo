@@ -1,0 +1,212 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using Pub;
+
+public partial class Mould_WIP : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            CommonClass.isAllow(User.Identity.Name, this, "WIP");
+            //lblWorksiteID.Text = "M05";
+            txtLot.Attributes.Add("onkeypress", "EnterTextBox('btnEnter')");
+            //CRUD.SetCBL(cblDCMaterial, "DCMaterial");
+            setddl();
+
+        }
+
+    }
+    protected void btnEnter_Click(object sender, EventArgs e)
+    {
+        //模具编号
+        string MouldLot = "";
+        #region 判断条码是否有效
+        if (txtLot.Text.Length > 3)
+        {
+            //外发或资产条码是否打印 条码第四位判断：W或Z
+            if (txtLot.Text.Substring(3, 1).ToString() == "W")
+            {
+                if (CRUD.CheckMouldLabel("W", txtLot.Text) == "fail")
+                {
+                    JScript.Alert("该条码为打印！", this);
+                    return;
+                }
+            }
+            else if (txtLot.Text.Substring(3, 1).ToString() == "Z")
+            {
+                if (CRUD.CheckMouldLabel("Z", txtLot.Text) == "fail")
+                {
+                    JScript.Alert("该条码未打印！", this);
+                    return;
+                }
+            }
+
+            MouldLot = txtLot.Text.Substring(0, 3).ToString();
+        }
+        else
+        {
+            MouldLot = txtLot.Text;
+        }
+
+        #endregion
+
+
+
+        //查询是否可以过站
+        string result = CRUD.QueryStationOfLot(lblWorksiteID.Text, MouldLot);
+        if (result != "success")
+        {
+            JScript.Alert(result, this);
+            txtLot.Text = "";
+            return;
+        }
+
+        CRUD.setLabelProcess(lblLotprocess, lblCurrnentWorksite, lblEndProcess, MouldLot, lblWorksiteID.Text);
+
+
+        //查询车间 、checkin的机台
+        //生成模具编号：规则：模具编号+类型[Z]+年月日—001Z170118
+        DataTable dt = CRUD.GetWorkflow(MouldLot);
+        //===================更具批次流程绑定返工站点 modify by lei.xue on 2017-2-14=====================
+        string type = dt.Rows[0]["flowid"].ToString();
+        if (type == "flow001" || type == "flow002")
+        {
+            //txtLabelInfo.Text = txtLot.Text + "Z" + System.DateTime.Now.ToString("yyMMdd");
+            ddlWorksite.ClearSelection();
+            ddlWorksite.Items.FindByValue("M15").Selected = true;
+
+
+        }
+        else if (type == "flow003")
+        {
+            //txtLabelInfo.Text = txtLot.Text + "W" + System.DateTime.Now.ToString("yyMMdd");
+            ddlWorksite.ClearSelection();
+            ddlWorksite.Items.FindByValue("M10").Selected = true;
+        }
+    }
+
+    private void setddl(string workshop, string eqp)
+    {
+        CRUD.Setdll(ddlWorkshop, "workshop");
+        //ddlWorkshop.SelectedIndex = 0;
+        ddlWorkshop.ClearSelection();
+        ddlWorkshop.Items.FindByValue(workshop).Selected = true;
+        ddlEqp.ClearSelection();
+        CRUD.SetEqpDDL(ddlEqp, ddlWorkshop.SelectedValue, lblWorksiteID.Text);
+        ddlEqp.Items.FindByValue(eqp).Selected = true;
+
+    }
+
+    private void setddl()
+    {
+        CRUD.Setdll(ddlWorkshop, "workshop");
+        //CRUD.Setdll(ddlMouldPitch,"MouldPitch");
+        //CRUD.Setdll(ddlMouldStructure, "MouldStructure");
+
+        ddlWorkshop.SelectedIndex = 0;
+        CRUD.SetEqpDDL(ddlEqp, ddlWorkshop.SelectedValue, lblWorksiteID.Text);
+    }
+
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        //string a = ddlWorkshop.SelectedValue;
+        if (txtLot.Text == "")
+        {
+            JScript.Alert("请刷入批次号", this);
+            return;
+        }
+
+        //检查是否是标签条码
+        string strLabel = "";
+        if (txtLot.Text.Length > 3)
+        {
+            strLabel = txtLot.Text;
+        }
+
+        string result = "";
+        if (cbxReworkID.Checked == false)
+        {
+            result = CRUD.CheckOut(txtLot.Text.Substring(0, 3).ToString(), strLabel, ddlEqp.SelectedValue
+                                    , ddlWorkshop.SelectedValue, lblWorksiteID.Text, System.Web.HttpContext.Current.Request.Cookies["userID"].Value.ToString());
+            if (result == "success")
+            {
+                //打印标签调用前台方法
+                //ClientScript.RegisterStartupScript(ClientScript.GetType(), "myscript", "<script>PrintLabel();</script>");
+                JScript.Alert("WIP出站成功！", this);
+                ClearInfo();
+                return;
+            }
+            else
+            {
+                JScript.Alert("WIP出站失败！", this);
+                return;
+            }
+        }
+        else
+        {
+
+            result = CRUD.CheckOut(txtLot.Text.Substring(0, 3).ToString(), strLabel, ddlEqp.SelectedValue
+                            , ddlWorkshop.SelectedValue, ddlWorksite.SelectedValue, System.Web.HttpContext.Current.Request.Cookies["userID"].Value.ToString());
+
+            #region 变更返工流程 M10是外发flow
+            string strFlow = "";
+            if (ddlWorksite.SelectedValue == "M10")
+            {
+                strFlow = "flow003";
+            }
+            else
+            {
+                strFlow = "flow001";
+            }
+            string resultFlow = CRUD.ChangLotWorkflow(strFlow, txtLot.Text.Substring(0, 3).ToString());
+            if (resultFlow != "success")
+            {
+                JScript.Alert("变更产品流程出错！", this);
+                return;
+            }
+            #endregion
+            #region 返工记录
+            //返工站点的流程编号
+            string Flowidno = "";
+            Flowidno = CRUD.GetReworkFlowidno(strFlow, ddlWorksite.SelectedValue); //CRUD.GetFlowidno(txtLot.Text.Substring(0, 3).ToString(), ddlWorksite.SelectedValue);
+            //记录返工记录
+            CRUD.rework(lblWorksiteID.Text, ddlWorksite.SelectedValue, txtLot.Text.Substring(0, 3).ToString(),
+                         System.Web.HttpContext.Current.Request.Cookies["userID"].Value.ToString(), Flowidno);
+            #endregion
+            
+            if (result == "success")
+            {
+                JScript.Alert("WIP出站成功！", this);
+                ClearInfo();
+                return;
+            }
+            else
+            {
+                JScript.Alert("WIP出站失败！", this);
+                return;
+            }
+        }
+
+    }
+    /// <summary>
+    /// 清除页面信息
+    /// </summary>
+    private void ClearInfo()
+    {
+        txtLot.Text = "";
+        txtLabelInfo.Text = "";
+        lblLotprocess.Text = "";
+        lblCurrnentWorksite.Text = "";
+        lblEndProcess.Text = "";
+    }
+    protected void btnEdit_Click(object sender, EventArgs e)
+    {
+
+    }
+}

@@ -1,0 +1,33 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>show</title>
+</head>
+<body>
+    <div> 
+        <h1>Show</h1>
+        <hr/>
+        @{ 
+            int a1 = 10;
+            Response.Write(a1+1);
+        }
+        <br/>
+        @a1
+        <br />
+        @for (int i = 0; i < 10; i++)
+        {
+            @i<br />
+
+        }
+        
+
+    </div>
+</body>
+</html>

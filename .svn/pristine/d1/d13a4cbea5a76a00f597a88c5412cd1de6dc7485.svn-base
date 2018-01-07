@@ -1,0 +1,184 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>HLMES</title>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <link href="../css/layout.css" rel="stylesheet" type="text/css" />
+    <link href="../css/menu.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        .btn {
+            height: 21px;
+            border-style: none;
+            border-color: inherit;
+            border-width: 0;
+            width: 69px;
+            background: url(../image/search_button.png) no-repeat left top;
+            cursor: pointer;
+        }
+    </style>
+
+    <script src="../JS/CommonFunction.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        function DelLoadingEffection1() {
+            var div = document.getElementById("loadimg");
+            div.parentNode.removeChild(div);
+            //div.removeNode(true);
+            var div1 = document.getElementById("over");
+            //div1.removeNode(true);
+            div1.parentNode.removeChild(div1);
+            var div2 = document.getElementById("layout");
+            //div2.removeNode(true);
+            div2.parentNode.removeChild(div2);
+            //var f = document.getElementById("All");
+            //var childs = f.childNodes;
+            //for (var i = childs.length - 1; i >= 0; i--) {
+            //    alert(childs[i].nodeName);
+            //    f.removeChild(childs[i]);
+            //}
+
+
+        }
+
+    </script>
+</head>
+<body onload="DelLoadingEffection1()">
+    <form id="form1" runat="server">
+        <!--遮罩层 DelLoadingEffection()-->
+        <div id="All">
+            <div id="over" style="display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f5f5f5; opacity: 0.5; z-index: 1000;"></div>
+            <div id="layout" style="display: block; position: absolute; top: 40%; left: 40%; width: 20%; height: 20%; z-index: 1001; text-align: center;">
+                <img id="loadimg" src="../image/loading.gif" />
+            </div>
+        </div>
+        <div id="header">
+            <div style="float: left">
+                <img alt="" src="../image/JH_Logo.png" style="height: 31px; width: 134px" />
+            </div>
+            <div id="userinfo" style="float: right; color: #FFFFFF;">
+                <asp:LinkButton ID="lbtnChnagePWD" runat="server"
+                    Style="text-decoration: none" ForeColor="#0066FF"
+                    OnClick="lbtnChnagePWD_Click">修改密码</asp:LinkButton>
+                <asp:LinkButton ID="lbtnLogout" runat="server" Style="text-decoration: none"
+                    ForeColor="#0066FF" OnClick="lbtnLogout_Click">注销登录</asp:LinkButton>
+                &nbsp;&nbsp;&nbsp;
+      当前登录账户：<asp:Label ID="lblID" runat="server" Text="Label"></asp:Label><asp:Label ID="lblName" runat="server" Text="Label"></asp:Label><asp:Label ID="lblWorkshop" runat="server" Text="Label"></asp:Label>
+            </div>
+        </div>
+
+        <div id="menu">
+            <div class="menu1">
+                <ul>
+
+                    <li><a class="hide" href="../Index.aspx" onclick="return false">模具模块</a>
+                        <ul>
+                            <li><a href="~/Mould/CreateMouldLot.aspx" title="模具编号" runat="server">模具编号</a></li>
+                            <li><a href="~/Mould/ElectroplateCheckIn.aspx" title="电镀进站" runat="server">电镀进站</a></li>
+                            <li><a href="~/Mould/Electroplate.aspx" title="电镀出站" runat="server">电镀出站</a></li>
+                            <li><a href="~/Mould/OutWard.aspx" title="外发" runat="server">外发</a></li>
+                            <li><a href="~/Mould/CarveCheckIn.aspx" title="精雕进站" runat="server">精雕进站</a></li>
+                            <li><a href="~/Mould/CarveCheckOut.aspx" title="精雕出站" runat="server">精雕出站</a></li>
+                            <li><a href="~/Mould/GritCheckIn.aspx" title="喷砂进站" runat="server">喷砂进站</a></li>
+                            <li><a href="~/Mould/GritCheckOut.aspx" title="喷砂出站" runat="server">喷砂出站</a></li>
+                            <li><a href="~/Mould/WIP.aspx" title="WIP" runat="server">WIP</a></li>
+                            <li><a href="~/Mould/MouldCompleteCheckIn.aspx" title="成型进站" runat="server">成型进站</a></li>
+                            <li><a href="~/Mould/MouldCompleteCheckOut.aspx" title="成型出站" runat="server">成型出站</a></li>
+                            <!--<li><a href="../ProductProcess/CreateLot.aspx" title="创建批次" runat ="server" >创建批次</a></li>
+            -->
+
+
+                        </ul>
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">制造模块</a>
+                        <ul>
+                            <li><a href="../Product/AGCoating.aspx" title="AG涂布" runat="server">AG涂布</a></li>
+                            <li><a href="../Product/AGCheck.aspx" title="AG涂布检验" runat="server">AG涂布检验</a></li>
+                            <li><a href="../Product/UVBack.aspx" title="UV背涂" runat="server">UV背涂</a></li>
+                            <li><a href="../Product/UVBackCheck.aspx" title="UV背涂检验" runat="server">UV背涂检验</a></li>
+                            <li><a href="../Product/UVComplete.aspx" title="UV成型" runat="server">UV成型</a></li>
+                            <li><a href="../Product/UVCompleteCheck.aspx" title="UV成型检验" runat="server">UV成型检验</a></li>
+                            <li><a href="../Product/PasteFilm.aspx" title="贴膜" runat="server">贴膜</a></li>
+                            <li><a href="../Product/PasteFilmCheck.aspx" title="贴膜检验" runat="server">贴膜检验</a></li>
+                            <li><a href="../Product/Subsection.aspx" title="分条" runat="server">分条</a></li>
+                            <li><a href="../Product/SubsectionCheck.aspx" title="分条检验" runat="server">分条检验</a></li>
+                            <li><a href="../Product/Package.aspx" title="包装" runat="server">包装</a></li>
+
+                        </ul>
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">备料模块</a>
+                        <ul>
+                            <li><a href="../Material/CreateWorkorder.aspx" title="创建工单" runat="server">创建工单</a></li>
+                            <li><a href="../Material/CreateLot.aspx" title="创建批次号" runat="server">创建批次号</a></li>
+                            <li><a href="../Material/LabelReprint.aspx" title="补打条码" runat="server">补打条码</a></li>
+
+                        </ul>
+
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">仓管模块</a>
+                        <ul>
+                            <li><a href="../Warehouse/Warehouse.aspx" title="成品入库" runat="server">成品入库</a></li>
+                            <!--<li><a href="../Warehouse/Shipment.aspx" title="成品出库" runat="server">成品出库</a></li>-->
+                            <li><a href="../Warehouse/InventoryManage.aspx" title="库存管理" runat="server">库存管理</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">质量模块</a>
+                        <ul>
+                            <li><a href="../QC/FQCAction.aspx" title="The zero dollar ads page" runat="server">质量检验</a></li>
+                            <li><a href="../QC/QCQuery.aspx" title="检验记录查询" runat="server">检验记录查询</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">设备模块</a>
+                        <ul>
+                            <li><a href="../Eqp/EqpManage.aspx" title="设备管理" runat="server">设备管理</a></li>
+                        </ul>
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">报表模块</a>
+                        <ul>
+                            <li><a href="../Report/MouldQuery.aspx" title="模具批次查询" runat="server">模具批次查询</a></li>
+                            <li><a href="../Report/FilmQuery.aspx" title="制造批次查询" runat="server">制造批次查询</a></li>
+                            <li><a href="../Report/FilmLotHistory.aspx" title="产品追溯" runat="server">产品追溯</a></li>
+                            <li><a href="../Report/WIPReport.aspx" title="WIP报表" runat="server">WIP报表</a></li>
+                            <li><a href="../Report/OutputReport.aspx" title="产出报表" runat="server">产出报表</a></li>
+                            <li><a href="../Report/LineOutputReport.aspx" title="线别产出报表" runat="server">线别产出报表</a></li>
+                            <li><a href="../Report/MouldLotHistory.aspx" title="模具追溯" runat="server">模具追溯</a></li>
+                            <li><a href="../Report/MouldLotStatus.aspx" title="模具状态" runat="server">模具状态</a></li>
+                        </ul>
+
+                    </li>
+                    <li><a class="hide" href="Index.aspx" onclick="return false">系统设置</a>
+                        <ul>
+                            <li><a href="../Configpara/Configpara.aspx" title="参数设置" runat="server">参数设置</a></li>
+                        </ul>
+
+                    </li>
+
+                    <li><a class="hide" href="Index.aspx" onclick="return false">权限管理</a>
+                        <ul>
+                            <li><a href="~/PermissionManage/UserManage.aspx" runat="server" title="用户维护">用户维护</a></li>
+                            <li><a href="~/PermissionManage/GroupManage.aspx" runat="server" title="群组维护">群组维护</a></li>
+                        </ul>
+                    </li>
+
+
+
+                </ul>
+            </div>
+        </div>
+        <div id="container">
+            <div id="mainContent">
+                <div>
+                    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                    </asp:ContentPlaceHolder>
+                </div>
+            </div>
+            <div id="footer"></div>
+        </div>
+    </form>
+</body>
+
+
+
+</html>

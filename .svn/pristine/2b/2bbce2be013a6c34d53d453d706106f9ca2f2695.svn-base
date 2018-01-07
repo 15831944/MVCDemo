@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Data;
+using System.Data.Common;
+using System.Web.UI.WebControls;
+
+/// <summary>
+/// Warehouse 的摘要说明
+/// </summary>
+public class Warehouse
+{
+    static DbUtility dbhelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["mesConn"].ToString(), DbProviderType.MySql);
+    static DbUtility erphelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["erpConn"].ToString(), DbProviderType.SqlServer);
+    public Warehouse()
+    {
+        //
+        // TODO: 在此处添加构造函数逻辑
+        //
+    }
+    public static DbDataReader QueryLotInfo(string lotid)
+    {
+        string sql = " select a.lotid,a.WorkshopID,ifnull(a.Warehouse,'') warehouse,a.Shipment,"
+        + " ( select worksiteid from jh_mes.tworkflow where flowid = a.flowid and flowidno = a.flowidno ) worksiteid, "
+        + " b.workordertype,b.workorderid,"//c.warehousecode,c.warehousetype, "
+        + " a.validLength length,a.validWidth width,b.MouldPETType pettype,b.MouldType type,b.MouldPinMin pinmin,b.MouldThinkness thinkness"
+        + " from tlotbasis a "
+        + " inner join tworkorderinfo b on a.WorkOrder = b.workorderid "
+        //+ " inner join twarehousecodeconfig c on c.workordertype = b.workordertype and c.workshopid = b.workshopid "
+        + " where a.lotid = '" + lotid + "' ";
+        return dbhelp.ExecuteReader(sql, null);
+    }
+
+    public static string InsertWarehouseInfo(string warehouseid,
+                                             string lotid,
+                                             string warehousecode,
+                                             string warehousetype,
+                                             string workorderid,
+                                             string workordertype,
+                                             string workshopid,
+                                             string userid,
+                                             string pinmin,
+                                             string thinkness,
+                                             string length,
+                                             string width,
+                                             string type,
+                                             string pettype)
+    {
+        string sql = " insert into jh_mes.twarehouseinfo(warehouseid,lotid,warehousecode,warehousetype,workorderid,workordertype,workshopid,warehouseuser,warehousetime,pinmin,thinkness,length,width,type,pettype)"
+                   + " values('" + warehouseid
+                   + "','" + lotid
+                   + "','"+warehousecode
+                   + "','" + warehousetype 
+                   + "','" + workorderid 
+                   + "','" + workordertype 
+                   + "','" + workshopid 
+                   + "','" + userid 
+                   + "',now(),'"+pinmin
+                   +"','"+thinkness
+                   +"','"+length
+                   +"','"+width
+                   +"','"+type
+                   +"','"+pettype+"');";
+        sql = sql + " update jh_mes.tlotbasis set warehouse = 'Y' where lotid = '" + lotid + "';";
+        int res = dbhelp.ExecuteNonQuery(sql, null);
+        if (res > 0)
+        {
+            return "success";
+        }
+        else
+        {
+            return "fail";
+        }
+        
+    }
+
+    public static void SetWarehouseCodedll(DropDownList ddl)
+    {
+        ddl.AppendDataBoundItems = false;
+        string sql = "select  id paraid,warehousecode paraname from jh_mes.twarehousecodeconfig  ; ";
+
+        using (DbDataReader reader = dbhelp.ExecuteReader(sql, null))
+        {
+            while (reader.Read())
+            {
+                ddl.Items.Add(new ListItem(reader["paraname"].ToString(), reader["paraid"].ToString()));
+            }
+            ddl.DataBind();
+        }
+    }
+
+    public static string ExistWarehouseID(string warehouseid)
+    {
+        string sql = "select warehouseid from twarehouseinfo where warehouseid = '"+warehouseid+"';";
+        object ob = dbhelp.ExecuteScalar(sql, null);
+        if (ob != null)
+        { 
+            return "success";
+        }
+        else
+        {
+            return "fail";
+        }
+
+    }
+
+    public static DataTable QueryWOType(string wotype,string wo,string type)
+    {
+        string sql = @"select TQ001,TQ002,TQ003,TQ004,MB003 as type
+                        from MOCTQ a
+                        INNER JOIN 
+                        INVMB b on a.TQ004 = b.MB001
+                        where TQ001 = '" + wotype + "' and TQ002 = '" + wo + "' and TQ003 = (select MB001 from INVMB where MB003='" + type + "' and MB001 LIKE 'P%'  )   ";
+        return  erphelp.ExecuteDataTable(sql, null);
+                        
+    }
+}

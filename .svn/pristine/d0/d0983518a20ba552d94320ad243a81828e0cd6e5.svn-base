@@ -1,0 +1,165 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage/MasterPage.master" AutoEventWireup="true" CodeFile="Shipment.aspx.cs" Inherits="Warehouse_Shipment" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <link href="../css/submenu.css" rel="stylesheet" />
+    <style type="text/css">
+        .labelinfo {
+            /*font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            padding-right: 10px;
+            height: 42px;
+            width: 75px;
+            display: inline-block;
+            text-align: right;*/
+            display: inline-block;
+            /*float: left;*/
+            height: 42px;
+            /*width: 75px;*/
+            width: 85px;
+            margin-right: 5px;
+            line-height: 42px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            text-align: right;
+            /*border:solid;*/
+        }
+
+        .txtinfo {
+            box-sizing: border-box;
+            height: 28px;
+            /*Width: 213px;*/
+            width: 213px;
+        }
+
+        .tb tr td {
+            /*width: 350px;*/
+            width: 350px;
+            text-align: left;
+            /*border:solid;*/
+        }
+
+        .tb {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /*fieldset {
+            text-align: center;
+        }*/
+        .hide {
+            display: none;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function EnterTextBox() {
+            if (event.keyCode == 13 && document.getElementById("<%=txtLot.ClientID%>").value != "") {
+                event.keyCode = 9;
+                event.returnValue = false;
+                document.getElementById("<%=btnEnter.ClientID %>").click();
+            }
+        }
+
+
+    </script>
+
+</asp:Content>
+
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <div id="submenu">
+        <div id="right_menu">
+            <div id="daohang">
+                <img src="../image/home.png" />仓管模块-成品出库
+            </div>
+            <!--end daohang-->
+            <div id="button">
+                <ul>
+                    <li>
+                        <asp:Button ID="btnSaveClose" runat="server" Text="确定"
+                            CssClass="daohang_btn_saveclose" OnClick="btnSaveClose_Click" /></li>
+                    <li>
+                        <asp:Button ID="btnEdit" runat="server" Text="删除"
+                            CssClass="daohang_btn_edit" OnClick="btnEdit_Click" /></li>
+                    <%-- <li>
+                        <asp:Button ID="btnReset" runat="server" OnClientClick="ClearAllTextBox()" Text="重置"
+                            CssClass="daohang_btn_reset" /></li>
+                    <li>
+                        <input type="button" class="daohang_btn_return" value="返回" onclick="window.location.reload('SpcWriter_Index.aspx');" /></li>--%>
+                </ul>
+            </div>
+            <!--end button-->
+        </div>
+
+    </div>
+    <div id="content">
+        <fieldset style="border-color: #e8e8e8; border-style: solid; border-width: 1px 1px 1px 1px;">
+            <legend>信息录入</legend>
+
+            <table class="tb">
+                <tr>
+                    <td>
+                        <label class="labelinfo">批次号：</label>
+                        <asp:TextBox ID="txtLot" runat="server" CssClass="txtinfo"></asp:TextBox>
+                        <asp:Button ID="btnEnter" runat="server" Text="Button" CssClass="hide" OnClick="btnEnter_Click" />
+                    </td>
+
+                    <td>
+                        <label class="labelinfo">数量：</label>
+                        <asp:TextBox ID="txtQty" runat="server" CssClass="txtinfo" ReadOnly="true" BackColor="#e8e8e8">0</asp:TextBox>
+
+                    </td>
+                    <td></td>
+                </tr>
+
+
+            </table>
+        </fieldset>
+
+        <fieldset>
+            <legend>批次信息</legend>
+            <div align="center">
+
+                <asp:GridView ID="grd" runat="server" Width="100%" CellPadding="4" CellSpacing="1" EnableModelValidation="True" ForeColor="#333333" GridLines="None" AutoGenerateColumns="False">
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <EditRowStyle BackColor="#999999" />
+                    <EmptyDataTemplate>
+                        NoData
+                    </EmptyDataTemplate>
+                    <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
+                    <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" HorizontalAlign="Center" />
+                    <Columns>
+                        <asp:TemplateField>
+                            <ItemTemplate>
+                                <asp:CheckBox ID="cbx" runat="server" />
+                            </ItemTemplate>
+                        </asp:TemplateField>
+                        <asp:BoundField DataField="lotid" HeaderText="批次号" />
+                        <asp:BoundField DataField="workorderid" HeaderText="工单" />
+                        <asp:BoundField DataField="workordertype" HeaderText="工单类型" />
+                        <asp:BoundField DataField="warehousecode" HeaderText="库位" />
+                        <asp:BoundField DataField="warehousetype" HeaderText="库位类型" />
+                        <asp:BoundField DataField="workshopid" HeaderText="车间" />
+                        <asp:BoundField DataField="pinmin" HeaderText="品名" />
+                        <asp:BoundField DataField="thinkness" HeaderText="厚度" />
+                        <asp:BoundField DataField="length" HeaderText="长度" />
+                        <asp:BoundField DataField="width" HeaderText="宽度" />
+                        <asp:BoundField DataField="type" HeaderText="类型" />
+                        <asp:BoundField DataField="pettype" HeaderText="PET类型" />
+
+
+
+                    </Columns>
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                </asp:GridView>
+            </div>
+
+
+        </fieldset>
+
+    </div>
+
+</asp:Content>
+

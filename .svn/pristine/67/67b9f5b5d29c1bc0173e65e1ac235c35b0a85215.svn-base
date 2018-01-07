@@ -1,0 +1,183 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.Common;
+using Pub;
+
+public partial class Warehouse_Shipment : System.Web.UI.Page
+{
+    private DataTable dt = new DataTable();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            CommonClass.isAllow(User.Identity.Name, this, "成品出库");
+            txtLot.Attributes.Add("onkeypress", "EnterTextBox()");
+            Shipment.setShipmentNoticeDDL(ddlShipmentNotice);
+            CreateTable();
+
+        }
+    }
+
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        string result = "";
+        string ShipmentID = txtShipmentID.Text;
+
+        if (ddlShipmentNotice.SelectedValue == "请选择单号")
+        {
+            JScript.Alert("请选择出库通知单", this);
+            return;
+        }
+
+        //获取出货单号
+        if (Shipment.ExistShipmentID(txtShipmentID.Text.Trim().ToString()) == "success")
+        {
+            JScript.Alert("输入的出库单号已经存在", this);
+            return;
+        }
+
+        DataTable dt = (DataTable)ViewState["dt"];
+        if (dt.Rows.Count > 0)
+        {
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                result = Shipment.InsertShipmentInfo(ShipmentID
+                                                    , dt.Rows[i]["lotid"].ToString()
+                                                    , System.Web.HttpContext.Current.Request.Cookies["userID"].Value.ToString());
+                if (result == "fail")
+                {
+                    JScript.Alert("出货出错！", this);
+                    return;
+                }
+            }
+
+            //把已出货的erp出货通知单状态更新成Y
+            if (Shipment.UpdateShipmentNoticeStatus("Y", ddlShipmentNotice.SelectedValue) != "success")
+            {
+                JScript.Alert("erp出货通知单状态更新出错", this);
+                return;
+            }
+
+            JScript.AlertAndRedirect("出货成功！","../Warehouse/Shipment.aspx", this);
+        }
+        else
+        {
+            JScript.Alert("请先刷入条码！", this);
+        }
+
+    }
+
+
+    private void CreateTable()
+    {
+        //创建列
+        dt.Columns.Clear();
+        dt.Rows.Clear();
+        DataColumn dtCol = new DataColumn("warehousecode", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("pinmin", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("lotid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("type", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("validwidth", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("validlength", typeof(string));
+        dt.Columns.Add(dtCol);
+        ViewState["dt"] = dt;
+    }
+
+
+    private void databind()
+    {
+        this.grd.DataSource = (DataTable)ViewState["dt"];
+        this.grd.DataBind();
+    }
+
+    protected void btnEnter_Click(object sender, EventArgs e)
+    {
+        //JScript.Alert("未找到条码信息", this);
+        using (DbDataReader reader = Shipment.QueryLotInfo(txtLot.Text))
+        {
+            if (reader.Read())
+            {
+                dt = (DataTable)ViewState["dt"];
+
+                //add by lei.xue on 2017-7-18 批次是否已经在列表中
+                foreach (DataRow dr in dt.Rows)
+                {
+                    if (dr["lotid"].ToString() == txtLot.Text)
+                    {
+                        JScript.Alert("批次已存在于列表中", this);
+                        return;
+                    }
+                }
+
+                //是否入库
+                if (reader["warehouse"].ToString() != "Y")
+                {
+                    JScript.Alert("批次尚未入库", this);
+                    return;
+                }
+                //是否出货
+                if (reader["shipment"].ToString() == "Y")
+                {
+                    JScript.Alert("批次已经出货", this);
+                    return;
+                }
+                DataRow dtRow = dt.NewRow();
+                dtRow["warehousecode"] = reader["warehousecode"].ToString();
+                dtRow["pinmin"] = reader["pinmin"].ToString();
+                dtRow["lotid"] = reader["lotid"].ToString();
+                dtRow["type"] = reader["type"].ToString();
+                dtRow["validwidth"] = reader["validwidth"].ToString();
+                dtRow["validlength"] = reader["validlength"].ToString();
+                dt.Rows.Add(dtRow);
+                ViewState["dt"] = dt;
+                databind();
+                txtQty.Text = (Convert.ToInt32(txtQty.Text) + 1).ToString();
+                txtTotalLength.Text = (Convert.ToInt32(txtTotalLength.Text) + Convert.ToInt32(reader["validlength"])).ToString();
+            }
+            else
+            {
+                //JScript.Alert("未找到条码信息", this);
+                JScript.Alert("批次未入库", this);
+                return;
+            }
+        }
+    }
+    protected void btnEdit_Click(object sender, EventArgs e)
+    {
+        for (int i = grd.Rows.Count - 1; i >= 0; i--)
+        {
+            CheckBox cbx = (CheckBox)grd.Rows[i].FindControl("cbx");
+            if (cbx.Checked)
+            {
+                ((DataTable)ViewState["dt"]).Rows.RemoveAt(i);
+                if (Convert.ToInt32(txtQty.Text) > 0)
+                {
+                    txtQty.Text = (Convert.ToInt32(txtQty.Text) - 1).ToString();
+                }
+                if (Convert.ToInt32(txtTotalLength.Text) >= Convert.ToInt32(grd.Rows[i].Cells[6].Text))//gridview列从0开始计数
+                {
+                    txtTotalLength.Text = (Convert.ToInt32(txtTotalLength.Text) - Convert.ToInt32(grd.Rows[i].Cells[6].Text)).ToString();
+                }
+            }
+        }
+        databind();
+    }
+    protected void ddlShipmentNotice_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (ddlShipmentNotice.SelectedValue != "请选择单号")
+        {
+            grdShipmentNotice.DataSource = Shipment.QueryShipmentNoticeData(ddlShipmentNotice.SelectedValue);
+            grdShipmentNotice.DataBind();
+        }
+    }
+}

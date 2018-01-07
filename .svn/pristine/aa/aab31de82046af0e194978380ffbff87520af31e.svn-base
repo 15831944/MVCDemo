@@ -1,0 +1,228 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage/MasterPage.master" AutoEventWireup="true" CodeFile="LineOutputReport.aspx.cs" Inherits="Report_LineOutputReport" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <link href="../css/submenu.css" rel="stylesheet" />
+    <style type="text/css">
+        .labelinfo {
+            /*font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            padding-right: 10px;
+            height: 42px;
+            width: 75px;
+            display: inline-block;
+            text-align: right;*/
+            display: inline-block;
+            /*float: left;*/
+            height: 42px;
+            /*width: 75px;*/
+            width: 85px;
+            margin-right: 5px;
+            line-height: 42px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            text-align: right;
+            /*border:solid;*/
+        }
+
+        .txtinfo {
+            box-sizing: border-box;
+            height: 28px;
+            /*Width: 213px;*/
+            width: 180px;
+        }
+
+        .tb tr td {
+            /*width: 350px;*/
+            width: 350px;
+            text-align: left;
+            /*border:solid;*/
+        }
+
+        .tb {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /*fieldset {
+            text-align: center;
+        }*/
+        .hide {
+            display: none;
+        }
+
+        .tbhistory table {
+            border: 1px;
+            border-style: solid;
+            border-collapse: collapse;
+        }
+
+        .tblothistory td {
+            width: 120px;
+            text-align: center;
+            font-family: 'Microsoft YaHei';
+            font-size: 14px;
+        }
+
+        .tdtitle {
+            font-weight: bolder;
+            font-size: 16px;
+        }
+
+        .tblothistory {
+            border-collapse: collapse;
+            padding: 2px;
+        }
+
+        .trlothistory {
+            border-top-style: solid;
+            border-top-width: 2px;
+            border-top-color: #000000;
+        }
+
+        .trlothistory01 {
+            border-top-style: solid;
+            border-bottom-style: solid;
+            border-top-width: 2px;
+            border-bottom-width: 2px;
+        }
+    </style>
+    <script src="../JS/My97DatePickerBeta/My97DatePicker/WdatePicker.js"></script>
+    <script type="text/javascript">
+
+        function CheckData() {
+            if (document.getElementById("<%=txtBt.ClientID%>").value == "") {
+                alert("请输入开始时间！");
+                return false;
+            }
+
+            if (document.getElementById("<%=txtEt.ClientID%>").value == "") {
+                alert("请输入结束时间！");
+                return false;
+            }
+        }
+        function loaddata01(content) {
+            var div = document.getElementById('divcontent');
+            div.innerHTML = content;
+        }
+    </script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <div id="submenu">
+        <div id="right_menu">
+            <div id="daohang">
+                <img src="../image/home.png" />报表模块-线别产出报表
+            </div>
+            <!--end daohang-->
+            <div id="button">
+                <ul>
+                    <li>
+                        <asp:Button ID="btnSaveClose" runat="server" Text="查询"
+                            CssClass="daohang_btn_saveclose" OnClientClick=" return CheckData()" OnClick="btnSaveClose_Click" /></li>
+                    <%--                    <li>
+                        <asp:Button ID="btnEdit" runat="server" Text="修改"
+                            CssClass="daohang_btn_edit" /></li>
+                    <li>
+                        <asp:Button ID="btnReset" runat="server" OnClientClick="ClearAllTextBox()" Text="重置"
+                            CssClass="daohang_btn_reset" /></li>
+                    <li>
+                        <input type="button" class="daohang_btn_return" value="返回" onclick="window.location.reload('SpcWriter_Index.aspx');" /></li>--%>
+                </ul>
+            </div>
+            <!--end button-->
+        </div>
+
+    </div>
+    <div id="content">
+        <fieldset style="border-color: #e8e8e8; border-style: solid; border-width: 1px 1px 1px 1px;">
+            <legend>查询条件</legend>
+
+            <table class="tb">
+                <tr>
+                    <td>
+                        <label class="labelinfo">站点：</label>
+                        <asp:DropDownList ID="ddlWorksite" runat="server" CssClass="txtinfo">
+                        </asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">班次：</label>
+                        <asp:DropDownList ID="ddlClass" runat="server" CssClass="txtinfo" AutoPostBack="True" OnTextChanged="ddlClass_TextChanged"></asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">开始时间：</label>
+                        <asp:TextBox ID="txtBt" runat="server" CssClass="txtinfo" onClick="WdatePicker({qsEnabled:false,isShowClear:false,isShowOK:false,maxDate:'#F{\'%y-%M-%d\'}',dateFmt:'yyyy-MM-dd'})"></asp:TextBox>
+                    </td>
+                    <td>
+                        <label class="labelinfo">结束时间：</label>
+                        <asp:TextBox ID="txtEt" runat="server" CssClass="txtinfo" onClick="WdatePicker({qsEnabled:false,isShowClear:false,isShowOK:false,maxDate:'#F{\'%y-%M-%d\'}',dateFmt:'yyyy-MM-dd'})"></asp:TextBox>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <label class="labelinfo">厚度：</label>
+                        <asp:DropDownList ID="ddlThinkness" runat="server" CssClass="txtinfo">
+                        </asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">有效宽幅：</label>
+                        <asp:DropDownList ID="ddlWidth" runat="server" CssClass="txtinfo">
+                        </asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">工单类型：</label>
+                        <asp:DropDownList ID="ddlWOType" runat="server" CssClass="txtinfo">
+                        </asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">产品型号：</label>
+                        <asp:DropDownList ID="ddlWOProducttype" runat="server" CssClass="txtinfo">
+                        </asp:DropDownList>
+                    </td>
+                </tr>
+
+
+            </table>
+        </fieldset>
+
+        <fieldset>
+            <legend>过站信息</legend>
+
+            <div align="center">
+
+                <asp:GridView ID="grd" runat="server" Width="100%" CellPadding="4" CellSpacing="1" EnableModelValidation="True" ForeColor="#333333" GridLines="None" AutoGenerateColumns="False" OnRowDataBound="grd_RowDataBound">
+                    <AlternatingRowStyle BackColor="White" ForeColor="#284775" />
+                    <EditRowStyle BackColor="#999999" />
+                    <EmptyDataTemplate>
+                    </EmptyDataTemplate>
+                    <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" HorizontalAlign="Center" />
+                    <HeaderStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
+                    <PagerStyle BackColor="#284775" ForeColor="White" HorizontalAlign="Center" />
+                    <RowStyle BackColor="#F7F6F3" ForeColor="#333333" HorizontalAlign="Center" />
+                    <Columns>
+                        <asp:BoundField DataField="eqpid" HeaderText="机台" />
+
+                        <asp:BoundField DataField="lotid" HeaderText="Lot No" />
+                        <asp:BoundField DataField="mouldtype" HeaderText="Model" />
+                        <asp:BoundField DataField="mouldwidth" HeaderText="原始宽幅" />
+                        <asp:BoundField DataField="mouldlength" HeaderText="原始长度" />
+                        <asp:BoundField DataField="inputqty" HeaderText="投入数量" />
+                        <asp:BoundField DataField="validwidth" HeaderText="有效宽幅" />
+                        <asp:BoundField DataField="validlength" HeaderText="有效长度" />
+                        <asp:BoundField DataField="outputqty" HeaderText="产出数量" />
+                        <asp:BoundField DataField="outputrate" HeaderText="产出率" />
+                        <asp:BoundField DataField="filmlevel" HeaderText="Q Grade" />
+                    </Columns>
+                    <SelectedRowStyle BackColor="#E2DED6" Font-Bold="True" ForeColor="#333333" />
+                </asp:GridView>
+
+            </div>
+
+
+        </fieldset>
+
+    </div>
+    <div>
+    </div>
+</asp:Content>
+

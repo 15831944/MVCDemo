@@ -1,0 +1,116 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.Common;
+
+public partial class Report_OutputReport : System.Web.UI.Page
+{
+    int sumOutputQty = 0;
+    int sumAGradeQty = 0;
+    int sumBGradeQty = 0;
+    int sumHoldQty = 0;
+    int sumScrapQty = 0;
+    int sumInputQty = 0;
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            //绑定查询选项内容
+            OutputReport.setWorksiteDDL(ddlWorksite);
+            //工单类型
+            OutputReport.setWOTypeddl(ddlWOType);
+            //工单厚度
+            OutputReport.setWOddl(ddlThinkness, "mouldthinkness");
+            //工单宽度
+            OutputReport.setWOddl(ddlWidth, "mouldwidth");
+            //工单产品类型
+            OutputReport.setWOddl(ddlWOProducttype, "mouldtype");
+            //班次
+            OutputReport.setClassDDL(ddlClass);
+        }
+    }
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        databind();
+    }
+    private void databind()
+    {
+        DataTable dt;
+        //查询检验站点
+        if (ddlWorksite.SelectedItem.Text == "AG涂布检验"
+          || ddlWorksite.SelectedItem.Text == "UV背涂检验"
+          || ddlWorksite.SelectedItem.Text == "贴膜检验"
+          || ddlWorksite.SelectedItem.Text == "UV成型检验")
+        {
+            grd.Visible = false;
+            grdQC.Visible = true;
+            dt = OutputReport.QueryData(txtBt.Text, txtEt.Text, ddlWOType.SelectedValue, ddlWOProducttype.SelectedValue, ddlWidth.SelectedValue, ddlThinkness.SelectedValue, ddlWorksite.SelectedItem.Value);
+            grdQC.DataSource = dt;
+            grdQC.DataBind();
+        }
+        //制造站点
+        else
+        {
+            grd.Visible = true;
+            grdQC.Visible = false ;
+            dt = OutputReport.QueryData(txtBt.Text, txtEt.Text, ddlWOType.SelectedValue, ddlWOProducttype.SelectedValue, ddlWidth.SelectedValue, ddlThinkness.SelectedValue, ddlWorksite.SelectedItem.Value);
+            grd.DataSource = dt;
+            grd.DataBind();
+        }
+    }
+    protected void grd_RowDataBound(object sender, GridViewRowEventArgs e)
+    {
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            //DataRowView myrows = (DataRowView)e.Row.DataItem;
+            sumOutputQty += Convert.ToInt32(e.Row.Cells[6].Text);
+            sumInputQty += Convert.ToInt32(e.Row.Cells[3].Text);
+        }
+        // 合计
+        if (e.Row.RowType == DataControlRowType.Footer)
+        {
+            e.Row.Cells[0].Text = "Total";
+            e.Row.Cells[1].Text = "/";
+            e.Row.Cells[2].Text = "/";
+            e.Row.Cells[4].Text = "/";
+            e.Row.Cells[5].Text = "/";
+           
+            e.Row.Cells[3].Text = sumInputQty.ToString();
+            e.Row.Cells[6].Text = sumOutputQty.ToString();
+            //产出率
+            e.Row.Cells[7].Text = (Math.Round(Convert.ToDouble(sumOutputQty) / sumInputQty, 2) * 100).ToString()+"%";
+        }
+    }
+
+    protected void grdQC_RowDataBound(object sender, GridViewRowEventArgs e)
+    {
+        if (e.Row.RowType == DataControlRowType.DataRow)
+        {
+            //DataRowView myrows = (DataRowView)e.Row.DataItem;
+            sumOutputQty += Convert.ToInt32(e.Row.Cells[3].Text);
+            sumAGradeQty += Convert.ToInt32(e.Row.Cells[4].Text);
+            sumBGradeQty += Convert.ToInt32(e.Row.Cells[5].Text);
+            sumHoldQty += Convert.ToInt32(e.Row.Cells[6].Text);
+            sumScrapQty += Convert.ToInt32(e.Row.Cells[7].Text);
+
+        }
+        // 合计
+        if (e.Row.RowType == DataControlRowType.Footer)
+        {
+            e.Row.Cells[0].Text = "Total";
+            e.Row.Cells[1].Text = "/";
+            e.Row.Cells[2].Text = "/";
+
+            e.Row.Cells[3].Text = sumOutputQty.ToString();
+            e.Row.Cells[4].Text = sumAGradeQty.ToString();
+            e.Row.Cells[5].Text = sumBGradeQty.ToString();
+            e.Row.Cells[6].Text = sumHoldQty.ToString();
+            e.Row.Cells[7].Text = sumScrapQty.ToString();
+            e.Row.Cells[8].Text = (Math.Round(Convert.ToDouble((sumAGradeQty + sumBGradeQty) / sumOutputQty), 2) * 100).ToString()+"%";
+        }
+    }
+}

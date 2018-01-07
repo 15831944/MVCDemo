@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+/// <summary>
+/// Shipment 的摘要说明
+/// </summary>
+public class Shipment
+{
+    static DbUtility dbhelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["mesConn"].ToString(), DbProviderType.MySql);
+
+	public Shipment()
+	{
+		//
+		// TODO: 在此处添加构造函数逻辑
+		//
+	}
+
+    public static string ShipmentInfo(string lotid,string shipmentID )
+    {
+        string SQL = "update jh_mes.twarehouseinfo set shipmentid = '"+shipmentID+"' where lotid = '"+lotid+"' ;";
+        //更新批次出货状态
+        SQL += " update jh_mes.tlotbasis set shipment='Y' where lotid = '" + lotid + "'; ";
+        int result = dbhelp.ExecuteNonQuery(SQL, null);
+        if (result > 0)
+        {
+            return "success";
+        }
+        else
+        {
+            return "fail";
+        }
+    }
+
+    #region 查询出货单号的流水码 按日递增
+    public static string QueryShipmentIDByDay()
+    {
+        string sql = "select ifnull(max(right(shipmentid,3)),0) from twarehouseinfo where   date(warehousetime) =  curdate() ";
+        object ob = dbhelp.ExecuteScalar(sql, null);
+        if (ob != null)
+        {
+            return ob.ToString();
+        }
+        else
+        {
+            return "fail";
+        }
+    }
+    #endregion
+
+}

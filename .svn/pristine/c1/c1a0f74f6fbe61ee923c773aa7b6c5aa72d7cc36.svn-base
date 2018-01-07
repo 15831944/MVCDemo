@@ -1,0 +1,161 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data;
+using System.Data.Common;
+using Pub;
+
+public partial class Warehouse_Warehouse : System.Web.UI.Page
+{
+    private DataTable dt = new DataTable();
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            //CommonClass.isAllow(User.Identity.Name, this, "入库");
+            txtLot.Attributes.Add("onkeypress", "EnterTextBox()");
+            CreateTable();
+
+        }
+    }
+
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        //JScript.Alert("test！", this);
+
+        string result = "";
+        DataTable dt = (DataTable)ViewState["dt"];
+        if (dt.Rows.Count > 0)
+        {
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                result = Warehouse.InsertWarehouseInfo(dt.Rows[i]["lotid"].ToString(),
+                                                       dt.Rows[i]["warehousecode"].ToString(),
+                                                       dt.Rows[i]["warehousetype"].ToString(),
+                                                       dt.Rows[i]["workorderid"].ToString(),
+                                                       dt.Rows[i]["workordertype"].ToString(),
+                                                       dt.Rows[i]["workshopid"].ToString(),
+                                                       System.Web.HttpContext.Current.Request.Cookies["userID"].Value.ToString(),
+                                                       dt.Rows[i]["pinmin"].ToString(),
+                                                       dt.Rows[i]["thinkness"].ToString(),
+                                                       dt.Rows[i]["length"].ToString(),
+                                                       dt.Rows[i]["width"].ToString(),
+                                                       dt.Rows[i]["type"].ToString(),
+                                                       dt.Rows[i]["pettype"].ToString()
+                                                       );
+                if (result == "fail")
+                {
+                    JScript.Alert("入库出错！", this);
+                    return;
+                }
+            }
+            JScript.AlertAndRedirect("入库成功！","../Warehouse/Warehouse.aspx", this);
+        }
+        else
+        {
+            JScript.Alert("请刷入条码！", this);
+        }
+
+    }
+
+
+    private void CreateTable()
+    {
+        //创建列
+        dt.Columns.Clear();
+        dt.Rows.Clear();
+        DataColumn dtCol = new DataColumn("lotid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workorderid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workordertype", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("warehousecode", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("warehousetype", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("workshopid", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("pinmin", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("thinkness", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("length", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("width", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("type", typeof(string));
+        dt.Columns.Add(dtCol);
+        dtCol = new DataColumn("pettype", typeof(string));
+        dt.Columns.Add(dtCol);
+        ViewState["dt"] = dt;
+    }
+
+
+    private void databind()
+    {
+        this.grd.DataSource = (DataTable)ViewState["dt"];
+        this.grd.DataBind();
+    }
+
+    protected void btnEnter_Click(object sender, EventArgs e)
+    {
+        //JScript.Alert("未找到条码信息", this);
+        using (DbDataReader reader = Warehouse.QueryLotInfo(txtLot.Text))
+        {
+            if (reader.Read())
+            {
+                dt =(DataTable)ViewState["dt"];
+                //是否入库
+                if (reader["warehouse"].ToString() == "Y")
+                {
+                    JScript.Alert("批次已经入库", this);
+                    return;
+                }
+                //是否过包装站
+                if (reader["worksiteid"].ToString() != "M60")
+                {
+                    JScript.Alert("批次未包装", this);
+                    return;
+                }
+                DataRow dtRow = dt.NewRow();
+                dtRow["lotid"] = reader["lotid"].ToString();
+                dtRow["workorderid"] = reader["workorderid"].ToString();
+                dtRow["workordertype"] = reader["workordertype"].ToString();
+                dtRow["warehousecode"] = reader["warehousecode"].ToString();
+                dtRow["warehousetype"] = reader["warehousetype"].ToString();
+                dtRow["workshopid"] = reader["workshopid"].ToString();
+                dtRow["pinmin"] = reader["pinmin"].ToString();
+                dtRow["thinkness"] = reader["thinkness"].ToString();
+                dtRow["length"] = reader["length"].ToString();
+                dtRow["width"] = reader["width"].ToString();
+                dtRow["type"] = reader["type"].ToString();
+                dtRow["pettype"] = reader["pettype"].ToString();
+                dt.Rows.Add(dtRow);
+                ViewState["dt"] = dt;
+                databind();
+                txtQty.Text = (Convert.ToInt32(txtQty.Text) + 1).ToString();
+            }
+            else
+            {
+                JScript.Alert("未找到条码信息", this);
+                return;
+            }
+        }
+    }
+    protected void btnEdit_Click(object sender, EventArgs e)
+    {
+        for (int i = grd.Rows.Count - 1; i >= 0; i--)
+        {
+            CheckBox cbx = (CheckBox)grd.Rows[i].FindControl("cbx");
+            if (cbx.Checked)
+            {
+                ((DataTable)ViewState["dt"]).Rows.RemoveAt(i);
+            }
+        }
+        databind();
+    }
+}

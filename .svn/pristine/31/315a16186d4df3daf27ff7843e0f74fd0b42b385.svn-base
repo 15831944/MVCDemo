@@ -1,0 +1,185 @@
+﻿using System;
+using System.Data;
+using System.Configuration;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.Data.Common;
+using MySql.Data.MySqlClient;
+
+/// <summary>
+///User 的摘要说明
+/// </summary>
+public class Userdata
+{
+  static  DbUtility dbhelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["mesConn"].ToString(), DbProviderType.MySql);
+
+	public Userdata()
+	{
+		//
+		//TODO: 在此处添加构造函数逻辑
+		//
+
+	}
+
+    private string cID;
+    private string cName;
+    private string cPwd;
+    private string cWorkShop;
+    private string cStation;
+    private string cClass;
+
+    public string Class
+    {
+        get { return cClass; }
+        set { cClass = value; }
+    }
+
+    public string ID
+    {
+        get { return cID; }
+        set { cID = value; }
+    }
+
+    public string Name
+    {
+        get { return cName; }
+        set { cName = value; }
+    }
+    public string Pwd
+    {
+        get { return cPwd; }
+        set { cPwd = value; }
+    }
+    public string Workshop
+    {
+        get { return cWorkShop; }
+        set { cWorkShop = value; }
+    }
+    public string Station
+    {
+        get { return cStation; }
+        set { cStation = value; }
+    }
+
+    public static   bool getUserPower(string userID, string Power)
+    {
+
+        string sql = "select user_id from tpower as a " +
+                     "inner join tgrouppower as b on a.id = b.power_id " +
+                     "inner join tgroup as c on c.id = b.group_id " +
+                     "inner join tusergroup as d on d.group_id = c.id " + 
+                     "where a.powername = '"+Power+"' and d.user_id = '"+userID+"' "  ;
+        object obj =  dbhelp.ExecuteScalar(sql,null);
+        if (obj == null)
+        {
+            return false;
+        }
+        else
+        {
+            if (obj.ToString()== userID )
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
+    public static Userdata getUserInfo(string id)
+    {
+
+        Userdata user = new Userdata();
+       string sql = "select name ,class,station,password , workshop from  jh_mes.tUser where id ='"+id+"'";
+       using (DbDataReader reader = dbhelp.ExecuteReader(sql, null))
+       {
+           if (reader.Read())
+           {
+               user.ID = id;
+               user.Name = reader["name"].ToString();
+               user.Pwd = reader["password"].ToString();
+               user.Station = reader["station"].ToString();
+               user.Workshop = reader["workshop"].ToString();
+
+
+           }
+       }
+       return user;
+
+    }
+
+    public static DataTable Query(string sql)
+    {
+        return dbhelp.ExecuteDataTable(sql, null);
+
+    }
+
+    //获取用户的群组
+    public static DataTable GetUserGroup(string id )
+    {
+        string sql = "select c.id,c.name from  tuser as a inner join tusergroup as b  on a.id = b.user_id" +
+                     " inner join tgroup as  c on b.group_id = c.id" +
+                     " where a.id = '"+id+"'";
+        return dbhelp.ExecuteDataTable(sql, null);
+    }
+
+    
+
+    //获取用户信息
+    public static DataTable GetUserinfo(string id)
+    {
+        string sql = "select * from tuser where id ='" + id + "'";
+        return dbhelp.ExecuteDataTable(sql, null);
+    }
+
+    //添加用户权限
+    public static int addUsergroup(string userid, string groupid)
+    {
+        string sql= "insert tusergroup select '"+userid+"','"+groupid+"';";
+        int n= dbhelp.ExecuteNonQuery(sql, null);
+        return n;
+    }
+
+    //删除用户权限
+    public static int deleteUsergroup(string userid)
+    {
+        string sql = "delete from tusergroup where user_id ='"+ userid+"' ";
+        int n = dbhelp.ExecuteNonQuery(sql, null);
+        return n;
+
+    }
+
+    //添加用户
+    public int AddUser()
+    {
+        string sql = "insert into tuser(ID,name,class,station,createtime,password,workshop)values('" + cID + "','" + cName + "','" + cClass + "','" +
+                     cStation +"',now(),'" +cPwd+ "','" +cWorkShop+ "')";
+        int n = dbhelp.ExecuteNonQuery(sql, null);
+        return n;
+    }
+
+    //删除用户
+    public static  int DelUser(string id )
+    {
+        string sql = "delete from tuser where id='" + id + "'; delete from tusergroup where user_id='" + id + "'";
+
+         return  dbhelp.ExecuteNonQuery(sql, null);
+        
+
+    }
+    //修改密码
+    public static int ChangePWD(string id, string pwd)
+    {
+        string sql = "update tuser set password='" +pwd+ "' where id='" +id+ "'";
+        return dbhelp.ExecuteNonQuery(sql, null);
+    }
+
+
+}

@@ -1,0 +1,92 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Data;
+using System.Data.Common;
+using System.Web.UI.WebControls;
+/// <summary>
+/// OutputReport 的摘要说明
+/// </summary>
+public class OutputReport
+{
+    static DbUtility dbhelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["mesConn"].ToString(), DbProviderType.MySql);
+
+	public OutputReport()
+	{
+		//
+		// TODO: 在此处添加构造函数逻辑
+		//
+	}
+
+    public static void setWorksiteDDL(DropDownList ddl)
+    {
+        ddl.AppendDataBoundItems = true;
+        ddl.Items.Add(new ListItem("AG涂布", "M35"));
+        ddl.Items.Add(new ListItem("AG涂布检验", "M37"));
+        ddl.Items.Add(new ListItem("UV背涂", "M40"));
+        ddl.Items.Add(new ListItem("UV背涂检验", "M42"));
+        ddl.Items.Add(new ListItem("UV成型", "M45"));
+        ddl.Items.Add(new ListItem("UV成型检验", "M47"));
+        ddl.Items.Add(new ListItem("贴膜", "M50"));
+        ddl.Items.Add(new ListItem("贴膜检验", "M52"));
+        ddl.Items.Add(new ListItem("包装", "M60"));
+
+        ddl.DataBind();
+    }
+
+    public static void setClassDDL(DropDownList ddl)
+    {
+        ddl.AppendDataBoundItems = true;
+        ddl.Items.Add(new ListItem("ALL", "ALL"));
+        ddl.Items.Add(new ListItem("白班", "Day"));
+        ddl.Items.Add(new ListItem("夜班", "Night"));
+   
+        ddl.DataBind();
+    }
+
+    public static void setWOddl(DropDownList ddl,string type)
+    {
+        ddl.AppendDataBoundItems = true;
+        string sql = "select distinct "+type+" value from tworkorderinfo";
+
+        using (DbDataReader reader = dbhelp.ExecuteReader(sql, null))
+        {
+            ddl.Items.Add(new ListItem("ALL", "ALL"));
+            while (reader.Read())
+            {
+                ddl.Items.Add(new ListItem(reader["value"].ToString(), reader["value"].ToString()));
+            }
+            ddl.DataBind();
+        }
+    }
+    public static void setWOTypeddl(DropDownList ddl)
+    {
+        ddl.AppendDataBoundItems = true;
+        string sql = "select distinct workordertype value from tworkorderinfo";
+
+        using (DbDataReader reader = dbhelp.ExecuteReader(sql, null))
+        {
+            //ddl.Items.Add(new ListItem("ALL", "ALL"));
+            while (reader.Read())
+            {
+                ddl.Items.Add(new ListItem(reader["value"].ToString(), reader["value"].ToString()));
+            }
+            ddl.DataBind();
+        }
+    }
+
+    public static DataTable QueryData(string bt,string et,string wotype,string woproducttype,string wowidth,string wothinkness,string worksite,string classname)
+    {
+        string sql = "call prOutputReport('"+bt+"','"
+                                            +et+"','','"+woproducttype+"','"+wothinkness+"','"+wotype+"','"+wowidth+"','"+worksite+"','"+classname+"');";
+        return dbhelp.ExecuteDataTable(sql, null);
+    }
+
+    public static DataTable QueryDataByQty(string bt, string et, string wotype, string woproducttype, string wowidth, string wothinkness, string worksite,string classname)
+    {
+        string sql = "call prOutputReportByQty('" + bt + "','"
+                                            + et + "','','" + woproducttype + "','" + wothinkness + "','" + wotype + "','" + wowidth + "','" + worksite + "','"+classname+"');";
+        return dbhelp.ExecuteDataTable(sql, null);
+    }
+}

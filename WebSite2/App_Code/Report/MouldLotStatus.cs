@@ -1,0 +1,57 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Data;
+using System.Data.Common;
+using System.Web.UI.WebControls;
+
+/// <summary>
+/// MouldLotStatus 的摘要说明
+/// </summary>
+public class MouldLotStatus
+{
+    static DbUtility dbhelp = new DbUtility(System.Configuration.ConfigurationManager.ConnectionStrings["mesConn"].ToString(), DbProviderType.MySql);
+
+	public MouldLotStatus()
+	{
+		//
+		// TODO: 在此处添加构造函数逻辑
+		//
+	}
+    public static void setWorksiteDDL(DropDownList ddl)
+    {
+        ddl.AppendDataBoundItems = true;
+        ddl.Items.Add(new ListItem("ALL", "ALL"));
+        ddl.Items.Add(new ListItem("电镀", "电镀"));
+
+        ddl.Items.Add(new ListItem("精雕", "精雕"));
+        ddl.Items.Add(new ListItem("喷砂", "喷砂"));
+        ddl.Items.Add(new ListItem("外发", "外发"));
+        ddl.Items.Add(new ListItem("WIP", "WIP"));
+        ddl.Items.Add(new ListItem("成型", "成型"));
+
+        ddl.DataBind();
+    }
+
+    public static void Setdll(DropDownList ddl, string ddltype)
+    {
+        ddl.AppendDataBoundItems = false;
+        string sql = "select  paraname,paraid from jh_mes.tparaconfig where paratype = '" + ddltype + "' ; ";
+
+        using (DbDataReader reader = dbhelp.ExecuteReader(sql, null))
+        {
+            ddl.Items.Add(new ListItem("ALL", "ALL"));
+            while (reader.Read())
+            {
+                ddl.Items.Add(new ListItem(reader["paraname"].ToString(), reader["paraid"].ToString()));
+            }
+            ddl.DataBind();
+        }
+    }
+    public static DataTable QueryData(string worksitename, string width, string haze, string pitch, string mouldstructure)
+    {
+        string sql = "call prGetMouldStatus01('"+mouldstructure+"','"+width+"','"+pitch+"','"+haze+"','"+worksitename+"')";
+        return dbhelp.ExecuteDataTable(sql, null);
+    }
+}

@@ -1,0 +1,267 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using Pub;
+using System.Data;
+public partial class Material_LabelReprint : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            CommonClass.isAllow(User.Identity.Name, this, "补打条码");
+            //lblWorksiteID.Text = "M05";
+            txtLot.Attributes.Add("onkeypress", "EnterTextBox('btnEnter')");
+
+     
+            txtPreWidth.Attributes.Add("readonly", "true");
+            txtPinMin.Attributes.Add("readonly", "true");
+            txtPETType.Attributes.Add("readonly", "true");
+            txtType.Attributes.Add("readonly", "true");
+            txtThinkness.Attributes.Add("readonly", "true");
+            txtPinHao.Attributes.Add("readonly", "true");
+        
+            txtLevel.Attributes.Add("readonly", "true");
+            txtPasteFilmDate.Attributes.Add("readonly", "true");
+            txtSubsectionDate.Attributes.Add("readonly", "true");
+            txtUVCompleteDate.Attributes.Add("readonly", "true");
+            txtAfterPackageWeight.Attributes.Add("readonly", "true");
+            txtBeforePackageWeight.Attributes.Add("readonly", "true");
+
+            //CRUD.SetCBL(cblDCMaterial, "DCMaterial");
+            //setddl();
+
+        }
+    }
+    protected void btnEnter_Click(object sender, EventArgs e)
+    {
+        if (ddlLabelType.SelectedValue == "模具条码")
+        {
+            CheckMould();
+        }
+        else if (ddlLabelType.SelectedValue == "制造条码")
+        {
+            CheckProduct();
+        }
+        else if (ddlLabelType.SelectedValue == "包装条码")
+        {
+            CheckPackage();
+        }
+    }
+    protected void btnSaveClose_Click(object sender, EventArgs e)
+    {
+        //打印标签调用前台方法
+        ClientScript.RegisterStartupScript(ClientScript.GetType(), "myscript", "<script>PrintLabel();</script>");
+        return;
+    }
+
+    private void ClearInfo()
+    {
+        txtLot.Text = "";
+    }
+    private void CheckProduct()
+    {
+        string originalLot = "";
+        //判断是否是UV成型的条码
+        string check = CRUD.CheckFilmLabel("UV成型", txtLot.Text);
+        if (check != "fail")
+        {
+            originalLot = check;
+        }
+        else
+        {
+            originalLot = txtLot.Text;
+        }
+        ViewState["originalLot"] = originalLot;
+
+        DataTable lotDt = CRUD.GetLotBasisInfo(originalLot);
+        if (lotDt.Rows.Count == 0 || lotDt.Rows[0]["lottype"].ToString() !="Film")
+        {
+            JScript.Alert("未找到条码信息", this);
+            return;
+        }
+        //批次已过站点
+        string WorksiteIDOfLot = CRUD.GetWorksite(originalLot);
+        //查询批次流程
+        string strFlow = "";
+        DataTable dt = CRUD.GetWorkflow(originalLot);
+        for (int i = 0; i < dt.Rows.Count; i++)
+        {
+            if (WorksiteIDOfLot == dt.Rows[i]["worksiteID"].ToString())
+            {
+                strFlow = strFlow + "[" + dt.Rows[i]["worksitename"].ToString() + "]" + "->";
+            }
+            else
+            {
+                strFlow = strFlow + dt.Rows[i]["worksitename"].ToString() + "->";
+            }
+        }
+        if (strFlow != "")
+        {
+            strFlow = strFlow.Remove((strFlow).Length - 2, 2);
+        }
+        lblLotprocess.Text = strFlow;
+
+    }
+    private void CheckPackage()
+    {
+        string originalLot = "";
+        //判断是否是UV成型的条码
+        string check = CRUD.CheckFilmLabel("UV成型", txtLot.Text);
+        if (check != "fail")
+        {
+            originalLot = check;
+        }
+        else
+        {
+            originalLot = txtLot.Text;
+        }
+        ViewState["originalLot"] = originalLot;
+
+        DataTable lotDt = CRUD.GetLotBasisInfo(originalLot);
+        if(lotDt.Rows.Count==0)
+        {
+            JScript.Alert("未找到条码信息", this);
+            return;
+        }
+        string isPackage = lotDt.Rows[0]["package"].ToString();
+        if (isPackage != "Y")
+        {
+            JScript.Alert("批次未包装", this);
+            return;
+        }
+        string workshop = lotDt.Rows[0]["workshopID"].ToString();
+        //膜等级
+        //txtFilmLevel.Text = lotDt.Rows[0]["mouldlevel"].ToString();
+        //setddl(workshop);
+
+        string WO = lotDt.Rows[0]["workorder"].ToString();
+        //显示批次长宽信息
+        txtPreWidth.Text = lotDt.Rows[0]["mouldwidth"].ToString();
+        txtPreLength.Text = lotDt.Rows[0]["mouldlength"].ToString();
+        txtLevel.Text = lotDt.Rows[0]["filmlevel"].ToString();
+
+        //增加有效幅宽
+        txtValidWidth.Text = lotDt.Rows[0]["validwidth"].ToString();
+
+        lotDt = null;
+        lotDt = Package.GetPackaInfo(originalLot);
+        if (lotDt.Rows.Count > 0)
+        {
+            txtPinHao.Text = lotDt.Rows[0]["PinHao"].ToString();
+            txtAfterPackageWeight.Text = lotDt.Rows[0]["AfterPackageWeight"].ToString();
+            txtBeforePackageWeight.Text = lotDt.Rows[0]["BeforePackageWeight"].ToString();
+        }
+        else
+        {
+            JScript.Alert("未查询到品号", this);
+        }
+        //显示打印标签时间
+        string[] LabelTime = FilmCRUD.GetLabelTime(txtLot.Text);
+        txtSubsectionDate.Text = LabelTime[0];
+        txtPasteFilmDate.Text = LabelTime[1];
+        txtUVCompleteDate.Text = LabelTime[2];
+        //显示工单信息
+        SetWOinfo(WO);
+        //批次已过站点
+        string WorksiteIDOfLot = CRUD.GetWorksite(originalLot);
+        //查询批次流程
+        string strFlow = "";
+        DataTable dt = CRUD.GetWorkflow(originalLot);
+        for (int i = 0; i < dt.Rows.Count; i++)
+        {
+            if (WorksiteIDOfLot == dt.Rows[i]["worksiteID"].ToString())
+            {
+                strFlow = strFlow + "[" + dt.Rows[i]["worksitename"].ToString() + "]" + "->";
+            }
+            else
+            {
+                strFlow = strFlow + dt.Rows[i]["worksitename"].ToString() + "->";
+            }
+        }
+        if (strFlow != "")
+        {
+            strFlow = strFlow.Remove((strFlow).Length - 2, 2);
+        }
+        lblLotprocess.Text = strFlow;
+    }
+    private void CheckMould()
+    {
+        //模具编号
+        string MouldLot = "";
+        #region 判断条码是否有效
+        if (txtLot.Text.Length > 3)
+        {
+            //外发或资产条码是否打印 条码第四位判断：W或Z
+            if (txtLot.Text.Substring(3, 1).ToString() == "W")
+            {
+                if (CRUD.CheckMouldLabel("W", txtLot.Text) == "fail")
+                {
+                    JScript.Alert("该条码为打印！", this);
+                    return;
+                }
+            }
+            else if (txtLot.Text.Substring(3, 1).ToString() == "Z")
+            {
+                if (CRUD.CheckMouldLabel("Z", txtLot.Text) == "fail")
+                {
+                    JScript.Alert("该条码未打印！", this);
+                    return;
+                }
+            }
+            else
+            {
+                JScript.Alert("条码未打印", this);
+                return;
+            }
+        }
+        else
+        {
+            JScript.Alert("条码未打印", this);
+            return;
+        }
+        #endregion
+        //模具编号
+        MouldLot = txtLot.Text.Substring(0, 3).ToString();
+        //批次已过站点
+        string WorksiteIDOfLot = CRUD.GetWorksite(MouldLot);
+        //查询批次流程
+        string strFlow = "";
+        DataTable dt = CRUD.GetWorkflow(MouldLot);
+        for (int i = 0; i < dt.Rows.Count; i++)
+        {
+            if (WorksiteIDOfLot == dt.Rows[i]["worksiteID"].ToString())
+            {
+                strFlow = strFlow + "[" + dt.Rows[i]["worksitename"].ToString() + "]" + "->";
+            }
+            else
+            {
+                strFlow = strFlow + dt.Rows[i]["worksitename"].ToString() + "->";
+            }
+        }
+        if (strFlow != "")
+        {
+            strFlow = strFlow.Remove((strFlow).Length - 2, 2);
+        }
+        lblLotprocess.Text = strFlow;
+    }
+
+    private void SetWOinfo(string WO)
+    {
+        DataTable dt = CreateLot.QueryWorkorderIno(WO);
+        if (dt.Rows.Count > 0)
+        {
+            txtThinkness.Text = dt.Rows[0]["MouldThinkness"].ToString();
+            txtType.Text = dt.Rows[0]["MouldType"].ToString();
+            txtPETType.Text = dt.Rows[0]["MouldPETType"].ToString();
+            txtPinMin.Text = dt.Rows[0]["mouldpinmin"].ToString();
+        }
+        else
+        {
+            JScript.Alert("未查询到工单信息", this);
+        }
+    }
+}

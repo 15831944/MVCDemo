@@ -1,0 +1,225 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage/MasterPage.master" AutoEventWireup="true" CodeFile="CreateWorkorder.aspx.cs" Inherits="Mould_CreateWorkorder" %>
+
+
+
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <link href="../css/submenu.css" rel="stylesheet" />
+    <style type="text/css">
+        .labelinfo {
+            /*font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            padding-right: 10px;
+            height: 42px;
+            width: 75px;
+            display: inline-block;
+            text-align: right;*/
+            display: inline-block;
+            /*float: left;*/
+            height: 42px;
+            /*width: 75px;*/
+            width: 85px;
+            margin-right: 5px;
+            line-height: 42px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 700;
+            text-align: right;
+            /*border:solid;*/
+        }
+
+        .txtinfo {
+            box-sizing: border-box;
+            height: 28px;
+            /*Width: 213px;*/
+            width: 213px;
+        }
+
+        .tb tr td {
+            /*width: 350px;*/
+            width: 350px;
+            text-align: left;
+            /*border:solid;*/
+        }
+
+        .tb {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /*fieldset {
+            text-align: center;
+        }*/
+        .hide {
+            display: none;
+        }
+
+        .history {
+            font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function CheckData() {
+            if (document.getElementById("<%=txtWorkorder.ClientID%>").value == "") {
+                alert("请先生成工单！");
+                return false;
+            }
+
+        }
+        function checkCreateData() {
+            if (document.getElementById("<%=txtMouldPinMin.ClientID%>").value == "") {
+                alert("请先输入品名！");
+                return false;
+            }
+            if (document.getElementById("<%=txtMouldThinkness.ClientID%>").value == "") {
+                alert("请先输入厚度！");
+                return false;
+            }
+            if (document.getElementById("<%=txtlMouldLength.ClientID%>").value == "") {
+                alert("请先输入长度！");
+                return false;
+            }
+            if (document.getElementById("<%=txtMouldWidth.ClientID%>").value == "") {
+                alert("请先输入宽度！");
+                return false;
+            }
+            if (document.getElementById("<%=txtMouldType.ClientID%>").value == "") {
+                alert("请先输入型号！");
+                return false;
+            }
+            if (document.getElementById("<%=txtMouldPETType.ClientID%>").value == "") {
+                alert("请先输入PET型号！");
+                return false;
+            }
+
+        }
+        <%--        function EnterTextBox() {
+            if (event.keyCode == 13 && document.getElementById("<%=txtLot.ClientID%>").value != "") {
+                event.keyCode = 9;
+                event.returnValue = false;
+                document.getElementById("<%=btnEnter.ClientID %>").click();
+            }
+        }--%>
+    </script>
+
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <div id="submenu">
+        <div id="right_menu">
+            <div id="daohang">
+                <img src="../image/home.png" />备料模块-创建工单<asp:Label ID="lblWorksiteID" runat="server" CssClass="hide"></asp:Label>
+            </div>
+            <!--end daohang-->
+            <div id="button">
+                <ul>
+                    <%--                    <li>
+                        <asp:Button ID="btnSaveClose" runat="server" Text="生成"
+                            CssClass="daohang_btn_edit" Width="36px" OnClick="btnSaveClose_Click" OnClientClick="return checkCreateData()" /></li>--%>
+                    <!-----工单手输 检查数据完整性在点击确定时执行 modify by lei.xue on 2017-5-18--------------->
+                    <li>
+                        <asp:Button ID="btnEdit" runat="server" Text="确定" OnClientClick="return checkCreateData()"
+                            CssClass="daohang_btn_saveclose" OnClick="btnEdit_Click" />
+                    </li>
+                    <%-- <li>
+                        <asp:Button ID="btnReset" runat="server" OnClientClick="ClearAllTextBox()" Text="重置"
+                            CssClass="daohang_btn_reset" /></li>
+                    <li>
+                        <input type="button" class="daohang_btn_return" value="返回" onclick="window.location.reload('SpcWriter_Index.aspx');" /></li>--%>
+                </ul>
+            </div>
+            <!--end button-->
+        </div>
+
+    </div>
+
+    <div id="worksite">
+
+        <fieldset style="border-color: #e8e8e8; border-style: solid; border-width: 1px 1px 1px 1px;">
+            <legend>工单信息</legend>
+
+            <table class="tb">
+                <tr>
+                    <td>
+                        <label class="labelinfo">车间：</label>
+                        <asp:DropDownList ID="ddlWorkshop" runat="server" CssClass="txtinfo"></asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">工艺路线：</label>
+                        <asp:DropDownList ID="ddlWorkflow" runat="server" CssClass="txtinfo" AutoPostBack="True" OnTextChanged="ddlWorkflow_TextChanged"></asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">工单类型：</label>
+                        <asp:DropDownList ID="ddlWorkorderType" runat="server" CssClass="txtinfo">
+                            <asp:ListItem Value="N">正常</asp:ListItem>
+                            <asp:ListItem Value="R">返工</asp:ListItem>
+                            <asp:ListItem Value="E">实验</asp:ListItem>
+                            <asp:ListItem Value="W">委外</asp:ListItem>
+                        </asp:DropDownList>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="labelinfo">品名：</label>
+                        <asp:TextBox ID="txtMouldPinMin" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+                    <td>
+                        <label class="labelinfo">产品型号：</label>
+                        <asp:TextBox ID="txtMouldType" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+                    <td>
+                        <label class="labelinfo">PET型号：</label>
+                        <asp:TextBox ID="txtMouldPETType" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="labelinfo">长度：</label>
+                        <asp:TextBox ID="txtlMouldLength" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+                    <td>
+                        <label class="labelinfo">宽度：</label>
+                        <asp:TextBox ID="txtMouldWidth" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+
+                    <td>
+                        <label class="labelinfo">厚度：</label>
+                        <asp:TextBox ID="txtMouldThinkness" runat="server" CssClass="txtinfo"></asp:TextBox>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <label class="labelinfo">BOM：</label>
+                        <asp:DropDownList ID="ddlBOM" runat="server" CssClass="txtinfo"></asp:DropDownList>
+                    </td>
+                    <td>
+                        <label class="labelinfo">工单：</label>
+                        <asp:TextBox ID="txtWorkorder" runat="server" CssClass="txtinfo"></asp:TextBox>
+
+                    </td>
+                    <td></td>
+
+                </tr>
+
+            </table>
+            <div>
+                <table style="margin-left: auto; margin-right: auto; width: 1064px">
+                    <tr>
+                        <td style="text-align: left;">
+                            <label class="labelinfo">批次流程：</label>
+                            <asp:Label ID="lblProcess" runat="server" Text=""></asp:Label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </fieldset>
+
+    </div>
+    <div>
+        <asp:Label ID="lblHistory" runat="server" CssClass="history"></asp:Label>
+    </div>
+
+</asp:Content>
+
